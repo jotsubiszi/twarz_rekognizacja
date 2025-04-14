@@ -83,11 +83,13 @@ def Haar():
         exit(1)
     image = cv2.imread(file)
     image_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    image_gray = cv2.equalizeHist(image_gray)
+    image_eqhist = cv2.equalizeHist(image_gray)
+    _image = np.copy(image_gray)
+    _image_eqh = np.copy(image_eqhist)
 
     face_cascade = cv2.CascadeClassifier()
 
-    if not face_cascade.load(os.path.join(cv2.data.haarcascades, "haarcascade_frontalface_alt.xml")):
+    if not face_cascade.load(os.path.join(cv2.data.haarcascades, "haarcascade_frontalface_default.xml")):
         print("Error while loading cascade file")
         exit(2)
 
@@ -96,8 +98,27 @@ def Haar():
         center = (x + w // 2, y + h // 2)
         frame = cv2.ellipse(image_gray, center, (w//2, h//2),
                             0, 0, 360, (255, 0, 255), 4)
+
+    faces = face_cascade.detectMultiScale(image_eqhist)
+    for (x, y, w, h) in faces:
+        center = (x + w // 2, y + h // 2)
+        frame = cv2.ellipse(image_eqhist, center, (w//2, h//2),
+                            0, 0, 360, (255, 0, 255), 4)
+    plt.subplot(221)
     plt.imshow(image_gray, cmap="gray")
     plt.title("Haar cascades")
+
+    plt.subplot(222)
+    plt.hist(_image.ravel(), 256)
+    plt.title("Histogram")
+
+    plt.subplot(223)
+    plt.imshow(image_eqhist, cmap="gray")
+    plt.title("Haar cascades (after histogram equalization)")
+
+    plt.subplot(224)
+    plt.hist(_image_eqh.ravel(), 256)
+    plt.title("Histogram")
     plt.show()
 
 
