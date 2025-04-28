@@ -39,12 +39,12 @@ def average_images(image_folder):
 
 
 # Usage
-folder_path = "./output/"
+folder_path = "../photos/output/"
 
 edge = average_images(folder_path)
 
-cv2.imwrite('average_image.png', edge)
+cv2.imwrite('./templates/average_image.png', edge)
 
 result = cv2.GaussianBlur(edge, (5, 5), 0)
 
-cv2.imwrite('average_blurred_image.png', result)
+cv2.imwrite('./templates/average_blurred_image.png', result)

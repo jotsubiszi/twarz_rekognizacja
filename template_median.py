@@ -44,10 +44,10 @@ def compute_median_image_batched(image_folder, batch_size=10):
 
 
 # Usage
-folder_path = "./output/"
+folder_path = "../photos/output/"
 median_img = compute_median_image_batched(folder_path)
-cv2.imwrite('median_image.jpg', median_img)
+cv2.imwrite('./templates/median_image.png', median_img)
 
 result = cv2.GaussianBlur(median_img, (5, 5), 0)
 
-cv2.imwrite('median_blurred_image.png', result)
+cv2.imwrite('./templates/median_blurred_image.png', result)

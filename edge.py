@@ -31,17 +31,11 @@ def detect_edges_in_folder(input_folder, output_folder,
             print(f"Could not read image: {image_file}")
             continue
 
-        # Convert to grayscale
-        # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
         # Apply Gaussian blur to reduce noise
         # blurred = cv2.GaussianBlur(gray, (5, 5), 0)
 
         # Apply Canny edge detection
         edges = cv2.Canny(img, threshold1, threshold2)
-        # sobelx = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=3)
-        # sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=5)
-        # edges = sobelx  # - sobely
 
         # Save the result
         output_path = os.path.join(output_folder, f"edges_{image_file}")
@@ -51,6 +45,6 @@ def detect_edges_in_folder(input_folder, output_folder,
 
 
 # Example usage
-input_folder = "./CroppedYalePNG/"
-output_folder = "./output/"
+input_folder = "../photos/CroppedYalePNG/"
+output_folder = "../photos/output/"
 detect_edges_in_folder(input_folder, output_folder)
