@@ -83,7 +83,7 @@ def Haar():
         exit(1)
     image = cv2.imread(file)
     image_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    image_eqhist = cv2.equalizeHist(image_gray)
+    image_eqhist = cv2.equalizeHist(image_gray)  # wyrównywanie histogramu
     _image = np.copy(image_gray)
     _image_eqh = np.copy(image_eqhist)
 
@@ -96,14 +96,14 @@ def Haar():
     faces = face_cascade.detectMultiScale(image_gray)
     for (x, y, w, h) in faces:
         center = (x + w // 2, y + h // 2)
-        frame = cv2.ellipse(image_gray, center, (w//2, h//2),
-                            0, 0, 360, (255, 0, 255), 4)
+        cv2.ellipse(image_gray, center, (w//2, h//2),
+                    0, 0, 360, (255, 0, 255), 4)
 
     faces = face_cascade.detectMultiScale(image_eqhist)
     for (x, y, w, h) in faces:
         center = (x + w // 2, y + h // 2)
-        frame = cv2.ellipse(image_eqhist, center, (w//2, h//2),
-                            0, 0, 360, (255, 0, 255), 4)
+        cv2.ellipse(image_eqhist, center, (w//2, h//2),
+                    0, 0, 360, (255, 0, 255), 4)
     plt.subplot(221)
     plt.imshow(image_gray, cmap="gray")
     plt.title("Haar cascades")
