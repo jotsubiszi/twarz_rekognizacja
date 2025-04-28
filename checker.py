@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm  # for progress bar
+import tkinter.filedialog as fd
 
 
 def sliding_probability_match(main_photo, template, stride=1):
@@ -53,9 +54,17 @@ def sliding_probability_match(main_photo, template, stride=1):
     return best_match_val, best_match_loc, prob_map
 
 
+img_path = fd.askopenfilename()
+if img_path == ():
+    print("Error: invalid file")
+    exit(1)
 # Load images
 main_photo = cv2.imread(
-    '../face.jpg', cv2.IMREAD_GRAYSCALE)
+    img_path, cv2.IMREAD_GRAYSCALE)
+main_photo = cv2.Canny(main_photo, 100, 200)
+cv2.namedWindow("photo")
+cv2.imshow("photo", main_photo)
+cv2.destroyAllWindows()
 template = cv2.imread(
     './templates/cropped/cropped_median_blurred_image.png', cv2.IMREAD_GRAYSCALE)
 
@@ -76,6 +85,9 @@ x, y = best_loc
 t_h, t_w = template.shape
 # cv2.rectangle(heatmap_vis, (x, y), (x+t_w, y+t_h), (0, 255, 0), 2)
 
-
+plt.subplot(121)
 plt.imshow(heatmap_vis)
+
+plt.subplot(122)
+plt.imshow(main_photo)
 plt.show()
