@@ -41,7 +41,7 @@ def sliding_probability_match(main_photo, template, stride=1):
             window = main_photo[y:y+t_h, x:x+t_w]
 
             # Calculate probability score
-            prob_score = np.sum(window * template) / np.sum(window)
+            prob_score = np.sum(window * template)  # / np.sum(window)
 
             # Store in probability map
             prob_map[y, x] = prob_score
@@ -61,12 +61,9 @@ if img_path == ():
 # Load images
 main_photo = cv2.imread(
     img_path, cv2.IMREAD_GRAYSCALE)
-main_photo = cv2.Canny(main_photo, 100, 200)
-cv2.namedWindow("photo")
-cv2.imshow("photo", main_photo)
-cv2.destroyAllWindows()
+main_photo = cv2.Canny(main_photo, 128, 255)
 template = cv2.imread(
-    './templates/cropped/cropped_median_blurred_image.png', cv2.IMREAD_GRAYSCALE)
+    './templates/cropped/cropped_average_blurred_image.png', cv2.IMREAD_GRAYSCALE)
 
 # Run matching
 best_score, best_loc, heatmap = sliding_probability_match(main_photo, template)
@@ -78,16 +75,16 @@ print(f"Best match probability: {best_score:.2%} at position {best_loc}")
 # Visualize
 heatmap_vis = cv2.normalize(heatmap, None, 0, 255,
                             cv2.NORM_MINMAX).astype(np.uint8)
-heatmap_vis = cv2.applyColorMap(heatmap_vis, cv2.COLORMAP_JET)
+# heatmap_vis = cv2.applyColorMap(heatmap_vis, cv2.COLORMAP_JET)
 
 # Draw rectangle around best match
 x, y = best_loc
 t_h, t_w = template.shape
-# cv2.rectangle(heatmap_vis, (x, y), (x+t_w, y+t_h), (0, 255, 0), 2)
 
 plt.subplot(121)
 plt.imshow(heatmap_vis)
 
 plt.subplot(122)
+cv2.circle(main_photo, (x + 84, y + 96), 150, (255, 255, 255), 2)
 plt.imshow(main_photo)
 plt.show()
