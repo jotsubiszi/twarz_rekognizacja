@@ -5,7 +5,7 @@ from tqdm import tqdm  # for progress bar
 import tkinter.filedialog as fd
 
 
-def sliding_probability_match(main_photo, template, stride=1):
+def sliding_probability_match(main_photo, template, scales, stride=1):
     """
     Compare template across main photo using sliding window
     where template's gray values represent probabilities (0-255 as 0%-100%)
@@ -24,34 +24,44 @@ def sliding_probability_match(main_photo, template, stride=1):
     main_photo = main_photo.astype(np.float32) / 255.0
     template = template.astype(np.float32) / 255.0
 
+    print(f"Found {len(scales)} possible areas")
+    if len(scales) == 0:
+        return -1, (0, 0), np.zeros_like(main_photo), 1
     # Get dimensions
-    h, w = main_photo.shape
-    t_h, t_w = template.shape
+    h, w = main_photo.shape[:2]
+    t_h, t_w = template.shape[:2]
 
     # Initialize probability map
-    prob_map = np.zeros((h - t_h + 1, w - t_w + 1))
+    nt_h = int(min(scales) * t_h)
+    nt_w = int(min(scales) * t_w)
+    prob_map = np.zeros((h - nt_h + 1, w - nt_w + 1))
 
     # Slide template across main image
     best_match_val = -1
     best_match_loc = (0, 0)
+    best_scale = 1
 
-    for y in tqdm(range(0, h - t_h + 1, stride)):
-        for x in range(0, w - t_w + 1, stride):
-            # Extract current window
-            window = main_photo[y:y+t_h, x:x+t_w]
+    for s in scales:
+        newTemplate = cv2.resize(template, (int(t_w * s), int(t_h * s)))
+        nt_h, nt_w = newTemplate.shape[:2]
+        for y in tqdm(range(0, h - nt_h + 1, stride)):
+            for x in range(0, w - nt_w + 1, stride):
+                # Extract current window
+                window = main_photo[y:y+nt_h, x:x+nt_w]
 
-            # Calculate probability score
-            prob_score = np.sum(window * template)  # / np.sum(window)
+                # Calculate probability score
+                prob_score = np.sum(window * newTemplate)  # / np.sum(window)
 
-            # Store in probability map
-            prob_map[y, x] = prob_score
+                # Store in probability map
+                prob_map[y, x] = prob_score
 
-            # Track best match
-            if prob_score > best_match_val:
-                best_match_val = prob_score
-                best_match_loc = (x, y)
+                # Track best match
+                if prob_score > best_match_val:
+                    best_match_val = prob_score
+                    best_match_loc = (x, y)
+                    best_scale = s
 
-    return best_match_val, best_match_loc, prob_map
+    return best_match_val, best_match_loc, prob_map, best_scale
 
 
 def prepare_image_for_face_recognition(img, template_width=100, template_height=100, max_angle_deviation=20):
@@ -152,16 +162,18 @@ if img_path == ():
     print("Error: invalid file")
     exit(1)
 # Load images
-main_photo = cv2.imread(img_path)
+orig_img = cv2.imread(img_path)
 template = cv2.imread(
     './templates/cropped/cropped_average_blurred_image.png', cv2.IMREAD_GRAYSCALE)
 # Run matching
+main_photo = orig_img
 template_h, template_w = template.shape[:2]
 mask, scales, _ = prepare_image_for_face_recognition(
-    main_photo, template_w, template_h)
+    main_photo, template_w, template_h, 45)
 main_photo = cv2.cvtColor(main_photo, cv2.COLOR_BGR2GRAY)
 main_photo = np.multiply(cv2.Canny(main_photo, 128, 255), mask)
-best_score, best_loc, heatmap = sliding_probability_match(main_photo, template)
+best_score, best_loc, heatmap, best_scale = sliding_probability_match(
+    main_photo, template, scales)
 # OR for faster results:
 # best_score, best_loc, heatmap = optimized_sliding_match(main_photo, template)
 
@@ -175,11 +187,17 @@ heatmap_vis = cv2.normalize(heatmap, None, 0, 255,
 # Draw rectangle around best match
 x, y = best_loc
 t_h, t_w = template.shape
+t_w = int(t_w * best_scale)
+t_h = int(t_h * best_scale)
 
-plt.subplot(121)
+plt.subplot(131)
+plt.imshow(cv2.cvtColor(orig_img, cv2.COLOR_BGR2RGB))
+
+plt.subplot(132)
 plt.imshow(mask)
 
-plt.subplot(122)
-cv2.circle(main_photo, (x + 84, y + 96), 150, (255, 255, 255), 2)
+plt.subplot(133)
+cv2.circle(main_photo, (x + t_w // 2, y + t_h // 2),
+           min(t_w, t_h), (255, 255, 255), 2)
 plt.imshow(main_photo)
 plt.show()
